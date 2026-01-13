@@ -3,11 +3,11 @@ main = "src/index.ts"
 compatibility_date = "2024-11-12"
 
 [env.development]
-account_id = ""
+account_id = "768f78d39b468bf9efb0792bddd586d8"
 workers_dev = true
 
 [env.production]
-account_id = ""
+account_id = "768f78d39b468bf9efb0792bddd586d8"
 route = ""
 
 # Add any additional bindings here
