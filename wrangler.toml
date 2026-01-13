@@ -1,0 +1,19 @@
+name = "cf-worker-02"
+main = "src/index.ts"
+compatibility_date = "2024-11-12"
+
+[env.development]
+account_id = ""
+workers_dev = true
+
+[env.production]
+account_id = ""
+route = ""
+
+# Add any additional bindings here
+# [[env.production.vars]]
+# API_KEY = "your-api-key"
+
+# [[env.production.kv_namespaces]]
+# binding = "MY_KV_NAMESPACE"
+# id = "your-namespace-id"
