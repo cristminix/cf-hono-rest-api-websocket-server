@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// node_modules/hono/dist/compose.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/compose.js
 var compose = /* @__PURE__ */ __name((middleware, onError, onNotFound) => {
   return (context, next) => {
     let index = -1;
@@ -46,10 +46,10 @@ var compose = /* @__PURE__ */ __name((middleware, onError, onNotFound) => {
   };
 }, "compose");
 
-// node_modules/hono/dist/request/constants.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/request/constants.js
 var GET_MATCH_RESULT = /* @__PURE__ */ Symbol();
 
-// node_modules/hono/dist/utils/body.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/utils/body.js
 var parseBody = /* @__PURE__ */ __name(async (request, options = /* @__PURE__ */ Object.create(null)) => {
   const { all = false, dot = false } = options;
   const headers = request instanceof HonoRequest ? request.raw.headers : request.headers;
@@ -120,7 +120,7 @@ var handleParsingNestedValues = /* @__PURE__ */ __name((form, key, value) => {
   });
 }, "handleParsingNestedValues");
 
-// node_modules/hono/dist/utils/url.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/utils/url.js
 var splitPath = /* @__PURE__ */ __name((path) => {
   const paths = path.split("/");
   if (paths[0] === "") {
@@ -322,7 +322,7 @@ var getQueryParams = /* @__PURE__ */ __name((url, key) => {
 }, "getQueryParams");
 var decodeURIComponent_ = decodeURIComponent;
 
-// node_modules/hono/dist/request.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/request.js
 var tryDecodeURIComponent = /* @__PURE__ */ __name((str) => tryDecode(str, decodeURIComponent_), "tryDecodeURIComponent");
 var HonoRequest = class {
   static {
@@ -593,7 +593,7 @@ var HonoRequest = class {
   }
 };
 
-// node_modules/hono/dist/utils/html.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/utils/html.js
 var HtmlEscapedCallbackPhase = {
   Stringify: 1,
   BeforeStream: 2,
@@ -635,7 +635,7 @@ var resolveCallback = /* @__PURE__ */ __name(async (str, phase, preserveCallback
   }
 }, "resolveCallback");
 
-// node_modules/hono/dist/context.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/context.js
 var TEXT_PLAIN = "text/plain; charset=UTF-8";
 var setDefaultContentType = /* @__PURE__ */ __name((contentType, headers) => {
   return {
@@ -1044,7 +1044,7 @@ var Context = class {
   }, "notFound");
 };
 
-// node_modules/hono/dist/router.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/router.js
 var METHOD_NAME_ALL = "ALL";
 var METHOD_NAME_ALL_LOWERCASE = "all";
 var METHODS = ["get", "post", "put", "delete", "options", "patch"];
@@ -1055,10 +1055,10 @@ var UnsupportedPathError = class extends Error {
   }
 };
 
-// node_modules/hono/dist/utils/constants.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/utils/constants.js
 var COMPOSED_HANDLER = "__COMPOSED_HANDLER";
 
-// node_modules/hono/dist/hono-base.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/hono-base.js
 var notFoundHandler = /* @__PURE__ */ __name((c) => {
   return c.text("404 Not Found", 404);
 }, "notFoundHandler");
@@ -1432,7 +1432,7 @@ var Hono = class _Hono {
   }, "fire");
 };
 
-// node_modules/hono/dist/router/reg-exp-router/matcher.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/router/reg-exp-router/matcher.js
 var emptyParam = [];
 function match(method, path) {
   const matchers = this.buildAllMatchers();
@@ -1454,7 +1454,7 @@ function match(method, path) {
 }
 __name(match, "match");
 
-// node_modules/hono/dist/router/reg-exp-router/node.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/router/reg-exp-router/node.js
 var LABEL_REG_EXP_STR = "[^/]+";
 var ONLY_WILDCARD_REG_EXP_STR = ".*";
 var TAIL_WILDCARD_REG_EXP_STR = "(?:|/.*)";
@@ -1566,7 +1566,7 @@ var Node = class _Node {
   }
 };
 
-// node_modules/hono/dist/router/reg-exp-router/trie.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/router/reg-exp-router/trie.js
 var Trie = class {
   static {
     __name(this, "Trie");
@@ -1625,7 +1625,7 @@ var Trie = class {
   }
 };
 
-// node_modules/hono/dist/router/reg-exp-router/router.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/router/reg-exp-router/router.js
 var nullMatcher = [/^$/, [], /* @__PURE__ */ Object.create(null)];
 var wildcardRegExpCache = /* @__PURE__ */ Object.create(null);
 function buildWildcardRegExp(path) {
@@ -1811,7 +1811,7 @@ var RegExpRouter = class {
   }
 };
 
-// node_modules/hono/dist/router/smart-router/router.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/router/smart-router/router.js
 var SmartRouter = class {
   static {
     __name(this, "SmartRouter");
@@ -1869,7 +1869,7 @@ var SmartRouter = class {
   }
 };
 
-// node_modules/hono/dist/router/trie-router/node.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/router/trie-router/node.js
 var emptyParams = /* @__PURE__ */ Object.create(null);
 var Node2 = class _Node2 {
   static {
@@ -2030,7 +2030,7 @@ var Node2 = class _Node2 {
   }
 };
 
-// node_modules/hono/dist/router/trie-router/router.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/router/trie-router/router.js
 var TrieRouter = class {
   static {
     __name(this, "TrieRouter");
@@ -2055,7 +2055,7 @@ var TrieRouter = class {
   }
 };
 
-// node_modules/hono/dist/hono.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/hono.js
 var Hono2 = class extends Hono {
   static {
     __name(this, "Hono");
@@ -2073,7 +2073,7 @@ var Hono2 = class extends Hono {
   }
 };
 
-// node_modules/hono/dist/middleware/serve-static/index.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/middleware/serve-static/index.js
 var ENCODINGS = {
   br: ".br",
   zstd: ".zst",
@@ -2081,7 +2081,7 @@ var ENCODINGS = {
 };
 var ENCODINGS_ORDERED_KEYS = Object.keys(ENCODINGS);
 
-// node_modules/hono/dist/helper/websocket/index.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/helper/websocket/index.js
 var WSContext = class {
   static {
     __name(this, "WSContext");
@@ -2132,7 +2132,7 @@ var defineWebSocketHelper = /* @__PURE__ */ __name((handler) => {
   };
 }, "defineWebSocketHelper");
 
-// node_modules/hono/dist/adapter/cloudflare-workers/websocket.js
+// node_modules/.pnpm/hono@4.11.4/node_modules/hono/dist/adapter/cloudflare-workers/websocket.js
 var upgradeWebSocket = defineWebSocketHelper(async (c, events) => {
   const upgradeHeader = c.req.header("Upgrade");
   if (upgradeHeader !== "websocket") {
