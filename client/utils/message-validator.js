@@ -378,10 +378,10 @@ class ValidationChain {
 }
 
 // Export both classes
-module.exports = { MessageValidator, ValidationChain };
+export { MessageValidator, ValidationChain };
 
 // Example usage
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     // Example 1: JSON validation
     const jsonValidator = MessageValidator.createJSONValidator({
         id: MessageValidator.predefinedRules.isNumber,

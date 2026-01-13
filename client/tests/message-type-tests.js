@@ -1,5 +1,5 @@
-const WebSocket = require('ws');
-const assert = require('assert');
+import WebSocket from 'ws';
+import assert from 'assert';
 
 class MessageTypeTests {
     constructor(wsUrl) {
@@ -310,7 +310,7 @@ class MessageTypeTests {
 }
 
 // CLI interface
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     const args = process.argv.slice(2);
     const wsUrl = args[0] || 'wss://localhost:8787/ws';
 
@@ -320,4 +320,4 @@ if (require.main === module) {
     tester.runAllTests().catch(console.error);
 }
 
-module.exports = MessageTypeTests;
+export default MessageTypeTests;

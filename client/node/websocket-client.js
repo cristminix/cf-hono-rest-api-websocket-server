@@ -1,9 +1,9 @@
-const WebSocket = require('ws');
-const { performance } = require('perf_hooks');
+import WebSocket from 'ws';
+import { performance } from 'perf_hooks';
 
 class CloudflareWebSocketClient {
     constructor(options = {}) {
-        this.url = options.url || 'wss://localhost:8787/ws';
+        this.url = options.url || 'ws://localhost:8787/websocket';
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = options.maxReconnectAttempts || 5;
         this.reconnectDelay = options.reconnectDelay || 1000;
@@ -319,10 +319,10 @@ class CloudflareWebSocketClient {
     }
 }
 
-module.exports = CloudflareWebSocketClient;
+export default CloudflareWebSocketClient;
 
 // CLI interface
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     const args = process.argv.slice(2);
     const url = args[0] || 'wss://localhost:8787/ws';
 

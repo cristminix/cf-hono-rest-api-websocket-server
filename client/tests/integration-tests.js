@@ -1,7 +1,7 @@
-const WebSocket = require('ws');
-const assert = require('assert');
-const fs = require('fs').promises;
-const path = require('path');
+import WebSocket from 'ws';
+import assert from 'assert';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 class IntegrationTests {
     constructor(options = {}) {
@@ -219,7 +219,7 @@ class IntegrationTests {
 
             sendAndWaitForResponse: async (ws, message, responsePredicate, timeout = 5000) => {
                 ws.send(message);
-                return await this.utils.waitForMessage(ws, responsePredicate, timeout);
+                return await this.waitForMessage(ws, responsePredicate, timeout);
             },
 
             generateTestData: (type, count = 1) => {
@@ -604,10 +604,10 @@ class IntegrationTests {
     }
 }
 
-module.exports = IntegrationTests;
+export default IntegrationTests;
 
 // CLI interface
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     const args = process.argv.slice(2);
     const wsUrl = args[0] || 'wss://localhost:8787/ws';
     const testType = args[1] || 'all';

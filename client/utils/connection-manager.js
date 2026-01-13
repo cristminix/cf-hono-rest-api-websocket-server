@@ -1,3 +1,6 @@
+// Note: This module expects WebSocket to be available globally or passed in
+// For Node.js usage, you would need to import WebSocket separately where this is used
+
 class ConnectionManager {
     constructor(options = {}) {
         this.options = {
@@ -319,11 +322,12 @@ class ConnectionManager {
     }
 }
 
-module.exports = ConnectionManager;
+export default ConnectionManager;
 
 // Usage example
-if (require.main === module) {
-    const WebSocket = require('ws'); // This would be passed in real usage
+if (import.meta.url === `file://${process.argv[1]}`) {
+    // Note: WebSocket needs to be imported where this is used in real applications
+    // For example: import WebSocket from 'ws';
 
     const manager = new ConnectionManager({
         maxReconnectAttempts: 3,

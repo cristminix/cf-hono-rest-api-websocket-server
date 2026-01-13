@@ -1,4 +1,4 @@
-const { performance } = require('perf_hooks');
+import { performance } from 'perf_hooks';
 
 class PerformanceTester {
     constructor(options = {}) {
@@ -494,15 +494,15 @@ class PerformanceTester {
     }
 }
 
-module.exports = PerformanceTester;
+export default PerformanceTester;
 
 // CLI interface
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     console.log('PerformanceTester utility loaded. Use as a module in your test scripts.');
 
     // Example usage would be:
     /*
-    const PerformanceTester = require('./performance-tester');
+    import PerformanceTester from './performance-tester.js';
     const tester = new PerformanceTester({
         messageSizes: [64, 256, 1024],
         testRounds: 50

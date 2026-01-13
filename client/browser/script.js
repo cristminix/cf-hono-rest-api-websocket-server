@@ -1,0 +1,475 @@
+class WebSocketClient {
+    constructor() {
+        this.ws = null;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.reconnectDelay = 1000;
+        this.sentCount = 0;
+        this.receivedCount = 0;
+        this.errorCount = 0;
+        this.messageQueue = [];
+        this.isReconnecting = false;
+
+        this.performance = {
+            startTime: null,
+            endTime: null,
+            sent: 0,
+            received: 0,
+            latencies: [],
+            intervalId: null
+        };
+
+        this.testResults = [];
+
+        this.initializeElements();
+        this.bindEvents();
+    }
+
+    initializeElements() {
+        this.elements = {
+            wsUrl: document.getElementById('wsUrl'),
+            reconnectAttempts: document.getElementById('reconnectAttempts'),
+            reconnectDelay: document.getElementById('reconnectDelay'),
+            connectBtn: document.getElementById('connectBtn'),
+            disconnectBtn: document.getElementById('disconnectBtn'),
+            sendBtn: document.getElementById('sendBtn'),
+            sendTestBtn: document.getElementById('sendTestBtn'),
+            pingBtn: document.getElementById('pingBtn'),
+            messageInput: document.getElementById('messageInput'),
+            messageType: document.getElementById('messageType'),
+            status: document.getElementById('status'),
+            messages: document.getElementById('messages'),
+            sentCount: document.getElementById('sentCount'),
+            receivedCount: document.getElementById('receivedCount'),
+            errorCount: document.getElementById('errorCount'),
+            latency: document.getElementById('latency'),
+            clearBtn: document.getElementById('clearBtn'),
+
+            // Performance tab
+            messageSize: document.getElementById('messageSize'),
+            messageCount: document.getElementById('messageCount'),
+            interval: document.getElementById('interval'),
+            startPerfBtn: document.getElementById('startPerfBtn'),
+            stopPerfBtn: document.getElementById('stopPerfBtn'),
+            resetPerfBtn: document.getElementById('resetPerfBtn'),
+            perfSent: document.getElementById('perfSent'),
+            perfReceived: document.getElementById('perfReceived'),
+            perfLatency: document.getElementById('perfLatency'),
+            perfThroughput: document.getElementById('perfThroughput'),
+
+            // Tests tab
+            runAllTestsBtn: document.getElementById('runAllTestsBtn'),
+            runBasicTestsBtn: document.getElementById('runBasicTestsBtn'),
+            runStressTestsBtn: document.getElementById('runStressTestsBtn'),
+            runProtocolTestsBtn: document.getElementById('runProtocolTestsBtn'),
+            testResults: document.getElementById('testResults'),
+
+            // Tabs
+            tabs: document.querySelectorAll('.tab'),
+            tabContents: document.querySelectorAll('.tab-content')
+        };
+    }
+
+    bindEvents() {
+        this.elements.connectBtn.addEventListener('click', () => this.connect());
+        this.elements.disconnectBtn.addEventListener('click', () => this.disconnect());
+        this.elements.sendBtn.addEventListener('click', () => this.sendMessage());
+        this.elements.sendTestBtn.addEventListener('click', () => this.sendTestMessage());
+        this.elements.pingBtn.addEventListener('click', () => this.sendPing());
+        this.elements.clearBtn.addEventListener('click', () => this.clearMessages());
+
+        // Performance events
+        this.elements.startPerfBtn.addEventListener('click', () => this.startPerformanceTest());
+        this.elements.stopPerfBtn.addEventListener('click', () => this.stopPerformanceTest());
+        this.elements.resetPerfBtn.addEventListener('click', () => this.resetPerformanceTest());
+
+        // Test events
+        this.elements.runAllTestsBtn.addEventListener('click', () => this.runAllTests());
+        this.elements.runBasicTestsBtn.addEventListener('click', () => this.runBasicTests());
+        this.elements.runStressTestsBtn.addEventListener('click', () => this.runStressTests());
+        this.elements.runProtocolTestsBtn.addEventListener('click', () => this.runProtocolTests());
+
+        // Tab switching
+        this.elements.tabs.forEach(tab => {
+            tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+        });
+
+        // Enter key for message input
+        this.elements.messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.sendMessage();
+            }
+        });
+    }
+
+    switchTab(tabName) {
+        this.elements.tabs.forEach(tab => tab.classList.remove('active'));
+        this.elements.tabContents.forEach(content => content.classList.remove('active'));
+
+        document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+    }
+
+    connect() {
+        const url = this.elements.wsUrl.value.trim();
+        if (!url) {
+            this.showError('Please enter a WebSocket URL');
+            return;
+        }
+
+        try {
+            this.updateStatus('Connecting...', 'connecting');
+            this.ws = new WebSocket(url);
+            this.maxReconnectAttempts = parseInt(this.elements.reconnectAttempts.value) || 5;
+            this.reconnectDelay = parseInt(this.elements.reconnectDelay.value) || 1000;
+
+            this.ws.onopen = () => {
+                this.updateStatus('Connected', 'connected');
+                this.reconnectAttempts = 0;
+                this.isReconnecting = false;
+
+                // Send queued messages
+                while (this.messageQueue.length > 0) {
+                    const message = this.messageQueue.shift();
+                    this.ws.send(message);
+                }
+            };
+
+            this.ws.onmessage = (event) => {
+                this.handleMessage(event.data);
+            };
+
+            this.ws.onclose = () => {
+                this.updateStatus('Disconnected', 'disconnected');
+                this.attemptReconnect();
+            };
+
+            this.ws.onerror = (error) => {
+                this.handleError(error);
+            };
+
+            this.elements.connectBtn.disabled = true;
+            this.elements.disconnectBtn.disabled = false;
+        } catch (error) {
+            this.showError('Failed to connect: ' + error.message);
+        }
+    }
+
+    disconnect() {
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+        this.updateStatus('Disconnected', 'disconnected');
+        this.elements.connectBtn.disabled = false;
+        this.elements.disconnectBtn.disabled = true;
+        this.isReconnecting = false;
+    }
+
+    attemptReconnect() {
+        if (this.isReconnecting || this.reconnectAttempts >= this.maxReconnectAttempts) {
+            return;
+        }
+
+        this.isReconnecting = true;
+        this.reconnectAttempts++;
+
+        setTimeout(() => {
+            if (this.reconnectAttempts <= this.maxReconnectAttempts) {
+                this.logMessage(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+                this.connect();
+            } else {
+                this.logMessage('Max reconnection attempts reached', 'error');
+            }
+        }, this.reconnectDelay);
+    }
+
+    sendMessage(data = null) {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+            if (data) {
+                this.messageQueue.push(data);
+                this.logMessage('Message queued for sending when connected', 'error');
+            }
+            return;
+        }
+
+        const message = data || this.elements.messageInput.value.trim();
+        if (!message) return;
+
+        try {
+            const startTime = Date.now();
+            this.ws.send(message);
+            this.sentCount++;
+            this.updateStats();
+
+            this.logMessage(`Sent: ${message}`, 'sent');
+            this.elements.messageInput.value = '';
+
+            // Calculate and store latency if this was a test message
+            if (typeof message === 'string' && message.startsWith('PING:')) {
+                const sentTime = message.split(':')[1];
+                const latency = Date.now() - parseInt(sentTime);
+                this.updateLatency(latency);
+            }
+        } catch (error) {
+            this.showError('Failed to send message: ' + error.message);
+        }
+    }
+
+    sendTestMessage() {
+        const type = this.elements.messageType.value;
+        let message;
+
+        switch (type) {
+            case 'text':
+                message = `Test message ${Date.now()}`;
+                break;
+            case 'json':
+                message = JSON.stringify({
+                    type: 'test',
+                    timestamp: Date.now(),
+                    message: `Test message ${Date.now()}`
+                });
+                break;
+            case 'binary':
+                // Create a simple binary message using ArrayBuffer
+                const buffer = new ArrayBuffer(8);
+                const view = new DataView(buffer);
+                view.setUint32(0, Date.now());
+                view.setUint32(4, Math.random() * 1000000);
+                message = buffer;
+                break;
+        }
+
+        this.sendMessage(message);
+    }
+
+    sendPing() {
+        const pingMessage = `PING:${Date.now()}`;
+        this.sendMessage(pingMessage);
+    }
+
+    handleMessage(data) {
+        this.receivedCount++;
+        this.updateStats();
+
+        let messageContent = data;
+        if (data instanceof ArrayBuffer) {
+            // Convert binary data to hex string for display
+            const bytes = new Uint8Array(data);
+            messageContent = `Binary data (${data.byteLength} bytes): ${Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(' ')}`;
+        }
+
+        this.logMessage(`Received: ${messageContent}`, 'received');
+
+        // Handle pong response
+        if (typeof data === 'string' && data.startsWith('PONG:')) {
+            const sentTime = data.split(':')[1];
+            const latency = Date.now() - parseInt(sentTime);
+            this.updateLatency(latency);
+        }
+    }
+
+    handleError(error) {
+        this.errorCount++;
+        this.updateStats();
+        this.logMessage('Error: ' + error.message, 'error');
+    }
+
+    logMessage(message, type = 'info') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        this.elements.messages.appendChild(messageDiv);
+        this.elements.messages.scrollTop = this.elements.messages.scrollHeight;
+    }
+
+    showError(message) {
+        this.logMessage(message, 'error');
+        this.errorCount++;
+        this.updateStats();
+    }
+
+    updateStatus(text, className) {
+        this.elements.status.textContent = text;
+        this.elements.status.className = `status ${className}`;
+    }
+
+    updateStats() {
+        this.elements.sentCount.textContent = this.sentCount;
+        this.elements.receivedCount.textContent = this.receivedCount;
+        this.elements.errorCount.textContent = this.errorCount;
+    }
+
+    updateLatency(latency) {
+        this.elements.latency.textContent = `${latency}ms`;
+
+        // Update performance stats if in performance test
+        if (this.performance.startTime) {
+            this.performance.latencies.push(latency);
+            this.updatePerformanceStats();
+        }
+    }
+
+    clearMessages() {
+        this.elements.messages.innerHTML = '<div class="message">Messages cleared</div>';
+        this.sentCount = 0;
+        this.receivedCount = 0;
+        this.errorCount = 0;
+        this.updateStats();
+    }
+
+    // Performance testing methods
+    startPerformanceTest() {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+            this.showError('Must be connected to start performance test');
+            return;
+        }
+
+        const messageSize = parseInt(this.elements.messageSize.value) || 1024;
+        const messageCount = parseInt(this.elements.messageCount.value) || 100;
+        const interval = parseInt(this.elements.interval.value) || 10;
+
+        this.resetPerformanceTest();
+        this.performance.startTime = Date.now();
+        this.performance.totalMessages = messageCount;
+
+        let sent = 0;
+        this.performance.intervalId = setInterval(() => {
+            if (sent >= messageCount) {
+                this.stopPerformanceTest();
+                return;
+            }
+
+            const message = 'A'.repeat(messageSize);
+            this.sendMessage(message);
+            this.performance.sent++;
+            sent++;
+            this.updatePerformanceStats();
+        }, interval);
+    }
+
+    stopPerformanceTest() {
+        if (this.performance.intervalId) {
+            clearInterval(this.performance.intervalId);
+            this.performance.intervalId = null;
+        }
+
+        if (this.performance.startTime && !this.performance.endTime) {
+            this.performance.endTime = Date.now();
+        }
+
+        this.updatePerformanceStats();
+    }
+
+    resetPerformanceTest() {
+        if (this.performance.intervalId) {
+            clearInterval(this.performance.intervalId);
+            this.performance.intervalId = null;
+        }
+
+        this.performance = {
+            startTime: null,
+            endTime: null,
+            sent: 0,
+            received: 0,
+            latencies: [],
+            intervalId: null,
+            totalMessages: 0
+        };
+
+        this.elements.perfSent.textContent = '0';
+        this.elements.perfReceived.textContent = '0';
+        this.elements.perfLatency.textContent = '0ms';
+        this.elements.perfThroughput.textContent = '0 msg/s';
+    }
+
+    updatePerformanceStats() {
+        this.elements.perfSent.textContent = this.performance.sent;
+        this.elements.perfReceived.textContent = this.performance.received;
+
+        if (this.performance.latencies.length > 0) {
+            const avgLatency = this.performance.latencies.reduce((a, b) => a + b, 0) / this.performance.latencies.length;
+            this.elements.perfLatency.textContent = `${Math.round(avgLatency)}ms`;
+        }
+
+        if (this.performance.startTime) {
+            const duration = ((this.performance.endTime || Date.now()) - this.performance.startTime) / 1000;
+            const throughput = duration > 0 ? Math.round(this.performance.sent / duration) : 0;
+            this.elements.perfThroughput.textContent = `${throughput} msg/s`;
+        }
+    }
+
+    // Test methods
+    async runAllTests() {
+        await this.runBasicTests();
+        await this.runProtocolTests();
+        await this.runStressTests();
+    }
+
+    async runBasicTests() {
+        this.logTestResult('Starting basic tests...');
+
+        // Test 1: Connection
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+            this.logTestResult('Connecting for tests...', 'error');
+            this.connect();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        // Test 2: Text message
+        this.logTestResult('Testing text message...');
+        this.sendMessage('Hello World');
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Test 3: JSON message
+        this.logTestResult('Testing JSON message...');
+        this.sendMessage(JSON.stringify({ test: 'json', value: 123 }));
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        this.logTestResult('Basic tests completed');
+    }
+
+    async runProtocolTests() {
+        this.logTestResult('Starting protocol tests...');
+
+        // Test ping/pong
+        this.logTestResult('Testing ping/pong...');
+        this.sendPing();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Test reconnection
+        this.logTestResult('Testing reconnection logic...');
+        this.disconnect();
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        this.connect();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        this.logTestResult('Protocol tests completed');
+    }
+
+    async runStressTests() {
+        this.logTestResult('Starting stress tests...');
+
+        // Send multiple messages rapidly
+        for (let i = 0; i < 10; i++) {
+            this.sendMessage(`Stress test message ${i}`);
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        this.logTestResult('Stress tests completed');
+    }
+
+    logTestResult(message, type = 'info') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        this.elements.testResults.appendChild(messageDiv);
+        this.elements.testResults.scrollTop = this.elements.testResults.scrollHeight;
+    }
+}
+
+// Initialize the client when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new WebSocketClient();
+});
